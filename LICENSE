@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Additional Asset Notice
-
-The MIT License above applies to the code, documentation, and the five generic
-SVG tile assets listed in PUBLIC_ASSET_MANIFEST.md.
-
-The files assets/companions/dabing.png and assets/companions/yuwan.png are
-personal character artwork. Copyright (c) 2026 Homeward project creator. All
-rights reserved. Their public display in this repository is permitted. They are
-excluded from the MIT license grant. Reuse or redistribution requires separate
-permission, and forks should replace them with their own companion assets.

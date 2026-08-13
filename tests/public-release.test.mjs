@@ -9,7 +9,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const load = (path) => readFile(new URL(path, new URL("../", import.meta.url)), "utf8");
 
 test("required public documentation is present", async () => {
-  const required = ["README.md", "COMPANIONS.md", "CONTRIBUTING.md", "SECURITY.md", "PRIVACY.md", "CUSTOMIZATION.md", "LICENSE", "PUBLIC_ASSET_MANIFEST.md", "PUBLIC_RELEASE_SCAN.md"];
+  const required = ["README.md", "COMPANIONS.md", "CONTRIBUTING.md", "SECURITY.md", "PRIVACY.md", "CUSTOMIZATION.md", "LICENSE", "ASSET_LICENSE.md", "PUBLIC_ASSET_MANIFEST.md", "PUBLIC_RELEASE_SCAN.md"];
   await Promise.all(required.map((name) => access(resolve(root, name))));
 });
 

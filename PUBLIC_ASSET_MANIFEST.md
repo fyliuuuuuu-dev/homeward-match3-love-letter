@@ -14,4 +14,4 @@
 
 The geometric art is abstract, editable, and local. The two companion portraits are a narrow, expressly approved public-display exception. No source photograph, editable character production file, relationship artifact, commercial character, logo, music, font, remote image, or source reference is included.
 
-The five SVG files are distributed under the repository's MIT License. They contain English accessibility metadata and no external links or embedded raster data. The two PNG portraits are excluded from the MIT grant. Public display in this repository is allowed, while reuse or redistribution requires separate permission.
+The five SVG files are distributed under the repository's MIT License. They contain English accessibility metadata and no external links or embedded raster data. The two PNG portraits are excluded from the MIT grant. Public display in this repository is allowed, while reuse or redistribution requires separate permission under [ASSET_LICENSE.md](ASSET_LICENSE.md).

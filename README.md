@@ -80,4 +80,4 @@ Bug reports, accessibility findings, rule experiments, and small focused pull re
 
 ## License
 
-Code, documentation, and the included geometric assets are available under the [MIT License](LICENSE). The two companion portraits are personal character artwork, excluded from the MIT grant, and published with all rights reserved. Forks should replace them. See the additional notice in [LICENSE](LICENSE).
+Code, documentation, and the included geometric assets are available under the [MIT License](LICENSE). The two companion portraits are personal character artwork, excluded from the MIT grant, and published with all rights reserved. Forks should replace them. See [ASSET_LICENSE.md](ASSET_LICENSE.md).

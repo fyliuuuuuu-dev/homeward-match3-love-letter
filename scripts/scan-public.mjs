@@ -34,7 +34,7 @@ const allowedCompanionNameFiles = new Set([
   "COMPANIONS.md",
   "CUSTOMIZATION.md",
   "PUBLIC_ASSET_MANIFEST.md",
-  "LICENSE",
+  "ASSET_LICENSE.md",
   "index.html"
 ]);
 const allowedBinaryPaths = new Set([

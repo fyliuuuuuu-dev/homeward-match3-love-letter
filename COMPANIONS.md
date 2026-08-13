@@ -18,4 +18,4 @@ The two displayed portraits are approved AI-redrawn personal character artwork. 
 
 The game stores only neutral companion identifiers, A and B. A fork can replace the portraits or names without changing rules or save semantics. The interface also falls back to letter badges when either image is missing.
 
-The portraits are excluded from the MIT License and remain all rights reserved. Public display in this repository is permitted. Reuse or redistribution requires separate permission. Fork maintainers should replace them with their own companion artwork.
+The portraits are excluded from the MIT License and remain all rights reserved. Public display in this repository is permitted. Reuse or redistribution requires separate permission. Fork maintainers should replace them with their own companion artwork. The complete notice is in [ASSET_LICENSE.md](ASSET_LICENSE.md).

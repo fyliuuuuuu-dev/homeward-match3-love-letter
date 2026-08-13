@@ -50,7 +50,7 @@ Run `npm test` after replacing assets. The public checks verify that all five fi
 
 The visible labels are created in `index.html` and `src/presentation.mjs`. The engine uses neutral `A` and `B` identifiers in saved state. Keeping those identifiers stable avoids breaking existing saves while allowing any display names you choose.
 
-The default portrait paths are `assets/companions/dabing.png` and `assets/companions/yuwan.png`. Those two files are personal character artwork and are not licensed under MIT. Replace them before redistributing a fork unless you have separate permission to redistribute the originals. If a portrait is missing, the interface falls back to the neutral A or B badge.
+The default portrait paths are `assets/companions/dabing.png` and `assets/companions/yuwan.png`. Those two files are personal character artwork and are not licensed under MIT. Replace them before redistributing a fork unless you have separate permission to redistribute the originals. If a portrait is missing, the interface falls back to the neutral A or B badge. See [ASSET_LICENSE.md](ASSET_LICENSE.md) for the exact boundary.
 
 If names or likenesses identify real people or pets, keep your customized build private unless everyone involved has agreed to publication.
 

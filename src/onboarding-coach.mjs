@@ -1,0 +1,310 @@
+const SVG_NS = "http://www.w3.org/2000/svg";
+const clone = (value) => JSON.parse(JSON.stringify(value));
+const FRAME_KEYS = ["step", "currentCat", "oldRouteCat", "oldRoute", "routes"];
+const STEP_TEXT = [
+  "Press and drag from the start through at least three adjacent matching tiles.",
+  "Companion A leaves a route. Companion B meets it only when the new route ends on a marked tile.",
+  "A long route and a rendezvous are both valid. Choose your own next move."
+];
+
+function svgElement(name, attributes = {}) {
+  const element = document.createElementNS(SVG_NS, name);
+  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, String(value));
+  return element;
+}
+
+const pointsAttribute = (points) => points.map(({ x, y }) => `${x},${y}`).join(" ");
+
+function validCell(value) {
+  return value && typeof value === "object" &&
+    Object.keys(value).length === 2 &&
+    Number.isInteger(value.row) && value.row >= 0 && value.row < 7 &&
+    Number.isInteger(value.column) && value.column >= 0 && value.column < 6;
+}
+
+function validRoute(value) {
+  return Array.isArray(value) && value.length >= 3 && value.length <= 42 && value.every(validCell) &&
+    new Set(value.map(({ row, column }) => `${row},${column}`)).size === value.length;
+}
+
+function validFrame(value) {
+  if (!value || typeof value !== "object") return false;
+  if (Object.keys(value).sort().join() !== [...FRAME_KEYS].sort().join()) return false;
+  if (!Number.isInteger(value.step) || value.step < 0 || value.step > 2) return false;
+  if (!["A", "B"].includes(value.currentCat)) return false;
+  if (![null, "A", "B"].includes(value.oldRouteCat)) return false;
+  if (!Array.isArray(value.oldRoute) || value.oldRoute.length > 42 || !value.oldRoute.every(validCell)) return false;
+  if ((value.oldRoute.length === 0) !== (value.oldRouteCat === null)) return false;
+  if (!Array.isArray(value.routes) || value.routes.length < 1 || value.routes.length > 2 || !value.routes.every(validRoute)) return false;
+  if (value.currentCat !== ["A", "B", "A"][value.step]) return false;
+  if (value.routes.length !== [1, 1, 2][value.step]) return false;
+  if (value.step === 0 && (value.oldRoute.length !== 0 || value.oldRouteCat !== null)) return false;
+  if (value.step > 0 && (value.oldRoute.length < 3 || value.oldRouteCat !== [null, "A", "B"][value.step])) return false;
+  return true;
+}
+
+export function validateCoachFrames(value) {
+  if (!Array.isArray(value) || value.length > 3) return [];
+  if (!value.every(validFrame)) return [];
+  const steps = value.map((frame) => frame.step);
+  if (new Set(steps).size !== steps.length) return [];
+  return clone(value).sort((left, right) => left.step - right.step);
+}
+
+export function createCoachFrame(state) {
+  const model = createCoachModel(state);
+  if (!model) return null;
+  const frame = {
+    step: model.step,
+    currentCat: model.currentCat,
+    oldRouteCat: model.oldRouteCat,
+    oldRoute: model.oldRoute,
+    routes: model.routes
+  };
+  return validFrame(frame) ? clone(frame) : null;
+}
+
+function modelFromFrame(frame) {
+  return Object.freeze({
+    ...clone(frame),
+    primaryRoute: clone(frame.routes[0]),
+    animate: frame.step < 2,
+    showMeetingAtEndpoint: frame.step === 1,
+    text: STEP_TEXT[frame.step]
+  });
+}
+
+export function createCoachReplayModels(value) {
+  return validateCoachFrames(value).map(modelFromFrame);
+}
+
+export function createCoachModel(state) {
+  const onboarding = state?.onboarding;
+  if (!onboarding?.enabled || onboarding.phase !== "tutorial") return null;
+  const step = Number(onboarding.step);
+  const candidates = clone(onboarding.candidates || []);
+  if (step < 0 || step > 2 || candidates.length === 0) return null;
+  const primaryRoute = candidates[0] || [];
+  return Object.freeze({
+    step,
+    currentCat: state.currentCat,
+    oldRouteCat: state.oldRouteCat,
+    oldRoute: clone(state.oldRoute || []),
+    routes: candidates,
+    primaryRoute,
+    animate: step < 2,
+    showMeetingAtEndpoint: step === 1,
+    text: STEP_TEXT[step]
+  });
+}
+
+export function createOnboardingCoach({
+  ui,
+  coordinateCells,
+  learnedFrames = [],
+  onLearn = () => {},
+  onSkip = () => {}
+}) {
+  let generation = 0;
+  let animation = null;
+  let reducedMotion = false;
+  let activeStep = null;
+  let manual = false;
+  let replayIndex = 0;
+  const snapshots = new Map(validateCoachFrames(learnedFrames).map((frame) => [frame.step, frame]));
+  const dismissedSteps = new Set();
+
+  const visual = svgElement("svg", {
+    class: "onboarding-coach-visual",
+    "aria-hidden": "true"
+  });
+  const panel = document.createElement("section");
+  panel.className = "onboarding-coach-panel";
+  panel.hidden = true;
+  panel.setAttribute("aria-label", "Three-step route demo");
+  const copy = document.createElement("p");
+  const actions = document.createElement("div");
+  actions.className = "onboarding-coach-actions";
+  const skipButton = document.createElement("button");
+  skipButton.type = "button";
+  skipButton.textContent = "Skip demo";
+  skipButton.setAttribute("aria-label", "Skip three-step route demo");
+  const actionButton = document.createElement("button");
+  actionButton.type = "button";
+  actionButton.setAttribute("aria-label", "Close the route demo and start playing");
+  actions.append(skipButton, actionButton);
+  panel.append(copy, actions);
+  ui.boardWrap.append(visual);
+  ui.boardWrap.insertAdjacentElement("afterend", panel);
+
+  function publishFrames() {
+    const frames = [...snapshots.values()].sort((left, right) => left.step - right.step);
+    ui.replayCoach.textContent = frames.length === 3 ? "Replay three-step demo" : "Replay learned steps";
+    onLearn(clone(frames));
+  }
+  publishFrames();
+
+  function clearVisual(reason = "clear") {
+    generation += 1;
+    animation?.cancel();
+    animation = null;
+    visual.replaceChildren();
+    visual.dataset.clearReason = reason;
+  }
+
+  function close(reason = "close") {
+    clearVisual(reason);
+    panel.hidden = true;
+    activeStep = null;
+    manual = false;
+  }
+
+  function addRoute(route, className = "coach-route") {
+    const points = coordinateCells(route);
+    if (points.length === 0) return [];
+    visual.append(svgElement("polyline", {
+      class: className,
+      points: pointsAttribute(points)
+    }));
+    return points;
+  }
+
+  function renderModel(model) {
+    clearVisual("render");
+    const ownGeneration = generation;
+    activeStep = model.step;
+    panel.hidden = false;
+    copy.textContent = `Step ${model.step + 1}. ${model.text}`;
+    skipButton.textContent = manual ? "Close demo" : "Skip demo";
+    actionButton.textContent = manual
+      ? (replayIndex < snapshots.size - 1 ? "Next step" : "Try it yourself")
+      : (model.step === 2 ? "Choose your route" : "Start playing");
+
+    const oldPoints = model.step === 1 ? coordinateCells(model.oldRoute) : [];
+    for (const point of oldPoints) visual.append(svgElement("circle", {
+      class: "coach-old-footprint",
+      cx: point.x,
+      cy: point.y,
+      r: 9
+    }));
+    const routePoints = model.routes.map((route, index) => addRoute(
+      route,
+      index === 0 ? "coach-route" : "coach-route coach-route-secondary"
+    ));
+    for (const points of routePoints) {
+      if (points.length === 0) continue;
+      visual.append(svgElement("circle", {
+        class: "coach-start",
+        cx: points[0].x,
+        cy: points[0].y,
+        r: 8
+      }));
+      visual.append(svgElement("circle", {
+        class: "coach-end",
+        cx: points.at(-1).x,
+        cy: points.at(-1).y,
+        r: 9
+      }));
+    }
+    const primary = routePoints[0] || [];
+    if (primary.length === 0 || !model.animate) return;
+    const start = primary[0];
+    const endpoint = primary.at(-1);
+    const marker = svgElement("circle", {
+      class: "coach-finger",
+      cx: 0,
+      cy: 0,
+      r: 11
+    });
+    visual.append(marker);
+    if (reducedMotion) {
+      marker.setAttribute("cx", String(endpoint.x));
+      marker.setAttribute("cy", String(endpoint.y));
+      if (model.showMeetingAtEndpoint) visual.append(svgElement("circle", {
+        class: "coach-meeting",
+        cx: endpoint.x,
+        cy: endpoint.y,
+        r: 13
+      }));
+      return;
+    }
+    marker.setAttribute("cx", String(start.x));
+    marker.setAttribute("cy", String(start.y));
+    animation = marker.animate(
+      primary.map(({ x, y }) => ({ transform: `translate(${x - start.x}px, ${y - start.y}px)` })),
+      { duration: 1500, easing: "ease-in-out", fill: "forwards" }
+    );
+    animation.onfinish = () => {
+      if (ownGeneration !== generation) return;
+      if (model.showMeetingAtEndpoint) visual.append(svgElement("circle", {
+        class: "coach-meeting",
+        cx: endpoint.x,
+        cy: endpoint.y,
+        r: 13
+      }));
+      animation = null;
+    };
+  }
+
+  function update({ state, reducedMotion: nextReducedMotion, skipped }) {
+    reducedMotion = Boolean(nextReducedMotion);
+    const frame = createCoachFrame(state);
+    const model = frame ? modelFromFrame(frame) : null;
+    if (frame && JSON.stringify(snapshots.get(frame.step)) !== JSON.stringify(frame)) {
+      snapshots.set(frame.step, frame);
+      publishFrames();
+    }
+    if (manual) return;
+    if (skipped || !model) {
+      close(skipped ? "skipped" : "phase-change");
+      return;
+    }
+    if (!dismissedSteps.has(model.step) && activeStep !== model.step) renderModel(model);
+  }
+
+  function replay({ state, reducedMotion: nextReducedMotion }) {
+    reducedMotion = Boolean(nextReducedMotion);
+    const current = createCoachFrame(state);
+    if (current && JSON.stringify(snapshots.get(current.step)) !== JSON.stringify(current)) {
+      snapshots.set(current.step, current);
+      publishFrames();
+    }
+    const available = [...snapshots.keys()].sort((left, right) => left - right);
+    if (available.length === 0) return;
+    manual = true;
+    replayIndex = 0;
+    renderModel(modelFromFrame(snapshots.get(available[replayIndex])));
+  }
+
+  skipButton.addEventListener("click", () => {
+    if (!manual) onSkip();
+    close(manual ? "replay-close" : "skip");
+  });
+  actionButton.addEventListener("click", () => {
+    if (!manual) {
+      dismissedSteps.add(activeStep);
+      close("operate");
+      return;
+    }
+    const available = [...snapshots.keys()].sort((left, right) => left - right);
+    replayIndex += 1;
+    if (replayIndex >= available.length) {
+      close("replay-complete");
+      return;
+    }
+    renderModel(modelFromFrame(snapshots.get(available[replayIndex])));
+  });
+
+  return Object.freeze({
+    update,
+    replay,
+    cancel(reason = "cancel") {
+      if (reason === "restart") dismissedSteps.clear();
+      close(reason);
+    },
+    setReducedMotion(value) {
+      reducedMotion = Boolean(value);
+      if (activeStep !== null && snapshots.has(activeStep)) renderModel(modelFromFrame(snapshots.get(activeStep)));
+    }
+  });
+}

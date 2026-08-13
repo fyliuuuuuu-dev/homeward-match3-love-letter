@@ -101,6 +101,10 @@ export function createPresenter({
       x: ((column+0.5)/columns)*width, y: ((row+0.5)/rows)*height
     };
   }
+  function coordinateCells(cells = []) {
+    const rect = ui.board.getBoundingClientRect();
+    return cells.map((entry) => centerOf(entry, rect.width, rect.height));
+  }
   function renderPath(model) {
     ui.pathLayer.replaceChildren();
     if (!model.path.length)return;
@@ -262,6 +266,6 @@ export function createPresenter({
     body.classList.toggle("low-end", lowEnd);
   }
   return Object.freeze({
-    render, clearTransient, applyPreferences, lowEnd
+    render, clearTransient, applyPreferences, coordinateCells, lowEnd
   });
 }

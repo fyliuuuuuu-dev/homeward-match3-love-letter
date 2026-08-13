@@ -15,7 +15,8 @@ const uiIds = [
   "boardWrap", "board", "pathLayer", "boardFx", "cat", "growth", "target",
   "remaining", "status", "mission", "catA", "catB", "meetingMark", "restart",
   "rulesButton", "mute", "motion", "seed", "missionToggle", "submitPath",
-  "cancelPath", "copyLog", "downloadLog", "saveStatus", "rules", "closeRules"
+  "cancelPath", "copyLog", "downloadLog", "saveStatus", "rules", "closeRules",
+  "replayCoach"
 ];
 const ui = Object.fromEntries(uiIds.map((id) => [id, document.getElementById(id)]));
 let settings = {
@@ -34,6 +35,10 @@ let transaction = 0;
 let audioContext = null;
 let suppressClickUntil = 0;
 let keyboardActivation = null;
+let coach = null;
+let coachSyncGeneration = 0;
+let coachLoadPromise = null;
+let coachAutoLoadEnabled = false;
 function configureCell(button) {
   button.tabIndex = 0;
 }
@@ -48,6 +53,41 @@ function configurePathLayer(layer, geometry) {
 const presenter = createPresenter({
   ui, configureCell, focusCellButton, configurePathLayer
 });
+function persistSettings() {
+  safeStorageWrite(localStore, SETTINGS_KEY, JSON.stringify(settings));
+}
+function ensureCoach() {
+  coachLoadPromise ||= import("./onboarding-coach.mjs").then(({ createOnboardingCoach }) => {
+    coach = createOnboardingCoach({
+      ui,
+      coordinateCells: (cells) => presenter.coordinateCells(cells),
+      learnedFrames: settings.onboardingCoachFrames,
+      onLearn: (frames) => {
+        settings.onboardingCoachFrames = frames;
+        persistSettings();
+      },
+      onSkip: () => {
+        settings.onboardingCoachSkipped = true;
+        persistSettings();
+      }
+    });
+    return coach;
+  });
+  return coachLoadPromise;
+}
+function syncCoach() {
+  if (!coachAutoLoadEnabled) return;
+  const generation = ++coachSyncGeneration;
+  const snapshot = structuredClone(engine.state);
+  ensureCoach().then((loadedCoach) => {
+    if (generation !== coachSyncGeneration) return;
+    loadedCoach.update({
+      state: snapshot,
+      reducedMotion: settings.reducedMotion,
+      skipped: settings.onboardingCoachSkipped === true
+    });
+  });
+}
 for (const portrait of document.querySelectorAll(".companion-portrait")) {
   portrait.addEventListener("error", () => portrait.parentElement?.classList.add("asset-missing"));
 }
@@ -81,7 +121,7 @@ function save() {
   const data = engine.exportData();
   data.savedAt = new Date().toISOString();
   const saveResult = safeStorageWrite(localStore, STORAGE_KEY, JSON.stringify(data));
-  safeStorageWrite(localStore, SETTINGS_KEY, JSON.stringify(settings));
+  persistSettings();
   ui.saveStatus.textContent = saveResult.ok
     ? `Local save: ${new Date(data.savedAt).toLocaleTimeString()}, seed ${engine.seed}, ${engine.state.validHands} moves`
     : "Local storage is unavailable. You can keep playing and export the session log.";
@@ -97,6 +137,7 @@ function render(message = null, result = null, focusCell = null, action = null) 
   presenter.render({
     state: engine.state, path: engine.path || [], message, result, focusCell, action
   });
+  syncCoach();
 }
 function resultMessage(result) {
   return {
@@ -241,6 +282,8 @@ function restart() {
   history.replaceState(null, "", `?seed=${seed}${missionEnabled ? "&mission=1" : ""}`);
   activePointer = null;
   presenter.clearTransient("restart");
+  coachSyncGeneration += 1;
+  coach?.cancel("restart");
   render("Restarted with the selected seed.");
   save();
 }
@@ -253,6 +296,16 @@ ui.closeRules.addEventListener("click", () => {
   ui.rules.close(); ui.rulesButton.setAttribute("aria-expanded", "false");
 });
 ui.rules.addEventListener("close", () => ui.rulesButton.setAttribute("aria-expanded", "false"));
+ui.replayCoach.addEventListener("click", () => {
+  ui.rules.close();
+  coachAutoLoadEnabled = true;
+  const generation = ++coachSyncGeneration;
+  const snapshot = structuredClone(engine.state);
+  ensureCoach().then((loadedCoach) => {
+    if (generation !== coachSyncGeneration) return;
+    loadedCoach.replay({ state: snapshot, reducedMotion: settings.reducedMotion });
+  });
+});
 ui.mute.addEventListener("click", () => {
   settings.muted = !settings.muted;
   ui.mute.textContent = `Sound: ${settings.muted ? "off" : "on"}`;
@@ -276,6 +329,7 @@ function applySettings() {
   ui.mute.setAttribute("aria-pressed", String(settings.muted));
   ui.motion.textContent = `Reduced motion: ${settings.reducedMotion ? "on" : "off"}`;
   ui.motion.setAttribute("aria-pressed", String(settings.reducedMotion));
+  coach?.setReducedMotion(settings.reducedMotion);
 }
 function logText() {
   return JSON.stringify(engine.exportData(), null, 2);
@@ -294,13 +348,17 @@ ui.downloadLog.addEventListener("click", () => {
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
-    engine.suspend(); activePointer = null; presenter.clearTransient("suspend"); save();
+    engine.suspend(); activePointer = null; presenter.clearTransient("suspend"); coach?.cancel("suspend"); save();
   } else {
     engine.resume(); presenter.clearTransient("resume"); render("Resumed. Any unfinished gesture was canceled.");
   }
 });
 window.addEventListener("pagehide", () => {
-  engine.log("session_end", null); save();
+  coach?.cancel("pagehide"); engine.log("session_end", null); save();
 });
+window.addEventListener("load", () => {
+  coachAutoLoadEnabled = true;
+  if (settings.onboardingCoachSkipped !== true) syncCoach();
+}, { once: true });
 applySettings();
 loadSession();

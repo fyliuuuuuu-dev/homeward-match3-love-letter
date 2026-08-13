@@ -39,6 +39,37 @@ let coach = null;
 let coachSyncGeneration = 0;
 let coachLoadPromise = null;
 let coachAutoLoadEnabled = false;
+let settlement = null, pendingArrival = null, settlementPromise = null;
+const settlementBlocked = () => pendingArrival !== null || settlement?.isOpen();
+function settlementLoadFailed() {
+  const arrivalWasPending = !!pendingArrival;
+  pendingArrival = null; settlementPromise = null;
+  if (arrivalWasPending) render("Journey complete. Progress remains here; the summary could not load.");
+}
+function ensureSettlement() {
+  settlementPromise ||= import("./journey-settlement.mjs")
+    .then(({ createJourneySettlement }) => {
+      settlement = createJourneySettlement({
+        document,
+        onChoice: (payload) => {
+          engine.log("journey_settlement_choice", null, payload); return save();
+        }
+      });
+      return settlement;
+    }).catch(() => { settlementLoadFailed(); return null; });
+  return settlementPromise;
+}
+function queueSettlement(result) {
+  if (result?.arrival !== true || engine.mode !== "relax") return;
+  pendingArrival = { result: { arrival: true }, state: {
+    journey: { ...engine.state.journey }, growth: engine.state.growth
+  } };
+  ensureSettlement().then((ready) => {
+    if (!ready || !pendingArrival) return;
+    ready.show(pendingArrival);
+    pendingArrival = null;
+  });
+}
 function configureCell(button) {
   button.tabIndex = 0;
 }
@@ -125,6 +156,7 @@ function save() {
   ui.saveStatus.textContent = saveResult.ok
     ? `Local save: ${new Date(data.savedAt).toLocaleTimeString()}, seed ${engine.seed}, ${engine.state.validHands} moves`
     : "Local storage is unavailable. You can keep playing and export the session log.";
+  return saveResult.ok;
 }
 function cellFromEvent(event) {
   const target = document.elementFromPoint(event.clientX, event.clientY)?.closest?.(".cell");
@@ -158,7 +190,7 @@ function tone(frequency = 330, duration = .06) {
   oscillator.stop(audioContext.currentTime+duration);
 }
 ui.board.addEventListener("pointerdown", (event) => {
-  if (activePointer !== null || !event.isPrimary)return;
+  if (settlementBlocked() || activePointer !== null || !event.isPrimary)return;
   const cell = cellFromEvent(event);
   if (!cell || !engine.beginTrace(cell))return;
   activePointer = event.pointerId;
@@ -198,12 +230,14 @@ function finishPointer(event, cancelled = false) {
     render(resultMessage(result), result);
     tone(result.feedbackTier === "arrival"?720: result.feedbackTier === "meeting"?660: 440, .1);
     save();
+    queueSettlement(result);
   }
 }
 ui.board.addEventListener("pointerup", (event) => finishPointer(event));
 ui.board.addEventListener("pointercancel", (event) => finishPointer(event, true));
 ui.board.addEventListener("contextmenu", (event) => event.preventDefault());
 function selectCellForAccessiblePath(selectedCell) {
+  if (settlementBlocked())return"ignored";
   if (engine.state.status === "READY") {
     engine.beginTrace(selectedCell);
     presenter.clearTransient("start");
@@ -250,7 +284,7 @@ ui.board.addEventListener("click", (event) => {
   keyboardActivation = null; selectCellForAccessiblePath(selectedCell);
 });
 function submitKeyboardPath() {
-  if (engine.state.status !== "TRACING")return;
+  if (settlementBlocked() || engine.state.status !== "TRACING")return;
   const result = engine.submitTrace(`keyboard-${++transaction}`);
   if (!result.valid) {
     presenter.clearTransient("cancel");
@@ -258,6 +292,7 @@ function submitKeyboardPath() {
   } else {
     render(resultMessage(result), result);
     save();
+    queueSettlement(result);
   }
 }
 function cancelKeyboardPath() {
@@ -284,6 +319,8 @@ function restart() {
   presenter.clearTransient("restart");
   coachSyncGeneration += 1;
   coach?.cancel("restart");
+  pendingArrival = null;
+  settlement?.reset();
   render("Restarted with the selected seed.");
   save();
 }
@@ -359,6 +396,7 @@ window.addEventListener("pagehide", () => {
 window.addEventListener("load", () => {
   coachAutoLoadEnabled = true;
   if (settings.onboardingCoachSkipped !== true) syncCoach();
+  ensureSettlement();
 }, { once: true });
 applySettings();
 loadSession();

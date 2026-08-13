@@ -14,7 +14,7 @@ The board has six columns, seven rows, and five geometric tile types. Connect th
 
 The previous valid route stays visible. End the next valid route on any tile from that route to create a rendezvous and earn four bonus journey points. Crossing the route in the middle or starting on it does not count. This small rule turns each move into a choice between immediate length and setting up the next companion.
 
-The prototype includes deterministic seeds, a replayable three-step route coach, eight calibration moves, optional eight-move challenges, twelve-move journey soft stops, four feedback tiers, local save and restore with a v1 to v2 migration path, exportable session logs, keyboard controls, reduced motion, silent-by-default audio, and low-end device fallbacks. The coach is decorative, can be skipped or replayed, and keeps the first-screen input path independent. A recursive V0.2 resource budget check keeps the local resource graph bounded.
+The prototype includes deterministic seeds, a replayable three-step route coach, eight calibration moves, optional eight-move challenges, twelve-move journey soft stops, four feedback tiers, local save and restore with a v1 to v2 migration path, exportable session logs, keyboard controls, reduced motion, silent-by-default audio, and low-end device fallbacks. The coach is decorative, can be skipped or replayed, and keeps the first-screen input path independent. After every twelve valid free-play moves, a soft settlement card lets the player continue or save without changing the board or rules. A recursive V0.2 resource budget check keeps the local resource graph bounded.
 
 ## Run it locally
 
@@ -62,7 +62,7 @@ Do not commit material you cannot lawfully publish. References to a well-known c
 
 ## Current status
 
-Homeward is an early playable prototype. The rules and presentation are still being iterated. Automated checks cover the engine, persistence, the route coach, static accessibility contract, assets, privacy schema, performance budget, and local server.
+Homeward is an early playable prototype. The rules and presentation are still being iterated. Automated checks cover the engine, persistence, the route coach, journey settlement, static accessibility contract, assets, privacy schema, performance budget, and local server.
 
 The repository does not claim completed human playtesting, real-device iPhone validation, PWA installation, WeChat integration, production readiness, or a finished visual identity. The current build is a candidate for learning what deserves further work.
 

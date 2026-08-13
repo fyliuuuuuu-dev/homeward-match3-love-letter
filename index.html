@@ -13,6 +13,7 @@
   <main class="app-shell">
     <header class="summary" aria-label="Journey summary">
       <div><span class="label">Turn</span><strong id="cat">Cat A</strong></div>
+      <div><span id="target" class="label">Current goal</span><strong id="remaining">12 moves</strong></div>
       <div><span class="label">Journey</span><strong id="growth">0</strong></div>
       <div><span class="label">Moves</span><strong id="hands">0</strong></div>
     </header>
@@ -48,7 +49,7 @@
     <details class="debug">
       <summary>Prototype tools</summary>
       <label>Seed <input id="seed" inputmode="numeric" value="32032"></label>
-      <label><input id="missionToggle" type="checkbox"> Try the eight-move rendezvous challenge</label>
+      <label><input id="missionToggle" type="checkbox"> Enable the eight-move rendezvous challenge</label>
       <div class="debug-actions">
         <button id="copyLog" type="button">Copy log</button>
         <button id="downloadLog" type="button">Download log</button>
@@ -59,7 +60,7 @@
     <dialog id="rules">
       <h2>How to play</h2>
       <p>Connect at least three matching tiles horizontally, vertically, or diagonally. Drag back to the previous tile to undo a step. Cleared tiles refill in place.</p>
-      <p>Your last valid route stays on the board. End the next route on any tile from that earlier route to create a rendezvous and earn four bonus journey points.</p>
+      <p>Your last valid route stays on the board. End the next route on any tile from that earlier route to create a rendezvous and earn four bonus journey points. New players get a three-step guided route, then eight calibration moves.</p>
       <p>For keyboard or screen-reader play, focus and activate tiles one by one, then choose Submit path. Press Escape or choose Cancel path to abandon the current route.</p>
       <button id="closeRules" type="button">Got it</button>
     </dialog>

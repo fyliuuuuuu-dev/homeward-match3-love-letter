@@ -56,6 +56,32 @@
   pointer-events: none;
 }
 
+.cell.has-old-route[data-old-route-cat="A"]::after {
+  inset: 0;
+  border-width: 3px;
+  border-color: rgba(123, 87, 45, .72);
+  background-size: auto;
+  opacity: .86;
+}
+
+.cell.has-old-route[data-old-route-cat="B"]::after {
+  inset: 3px 1px;
+  border-color: rgba(92, 111, 125, .78);
+  border-radius: 45% 55%;
+  background-size: 85% 115%;
+  opacity: .9;
+}
+
+.cell.onboarding-hint::before {
+  position: absolute;
+  inset: 2px;
+  z-index: 3;
+  border: 2px solid #8b7148;
+  border-radius: 12px;
+  content: "";
+  pointer-events: none;
+}
+
 .path-layer {
   z-index: 1;
   pointer-events: none;
@@ -175,6 +201,18 @@
   pointer-events: none;
 }
 
+.arrival-board {
+  position: absolute;
+  inset: 3px;
+  border: 4px double #8c6940;
+  border-radius: 16px;
+  background: rgba(255, 243, 213, .22);
+  pointer-events: none;
+  animation: arrival-settle .72s ease-out both;
+}
+
+@keyframes arrival-settle { from { opacity: 0; } to { opacity: 1; } }
+
 .reshuffle-board::before {
   padding: 8px 12px;
   border: 2px solid var(--tile-system);
@@ -182,7 +220,7 @@
   color: var(--tile-system);
   background: rgba(255, 250, 240, .94);
   font-weight: 750;
-  content: "Board refreshed  \2194";
+  content: "Board refreshed  ↔";
 }
 
 @keyframes resolve-close {
@@ -203,6 +241,7 @@
 body.reduce-motion .resolve-mark,
 body.reduce-motion .meeting-mark,
 body.reduce-motion .reshuffle-board,
+body.reduce-motion .arrival-board,
 body.low-end .resolve-mark,
 body.low-end .meeting-mark,
 body.low-end .reshuffle-board {
@@ -223,6 +262,7 @@ body.low-end .reshuffle-board { background: transparent; }
 @media (prefers-reduced-motion: reduce) {
   .resolve-mark,
   .meeting-mark,
-  .reshuffle-board { animation: none; }
+  .reshuffle-board,
+  .arrival-board { animation: none; }
   .resolve-mark::after { display: none; }
 }

@@ -14,7 +14,7 @@ The board has six columns, seven rows, and five geometric tile types. Connect th
 
 The previous valid route stays visible. End the next valid route on any tile from that route to create a rendezvous and earn four bonus journey points. Crossing the route in the middle or starting on it does not count. This small rule turns each move into a choice between immediate length and setting up the next companion.
 
-The prototype includes deterministic seeds, optional eight-move challenges, local save and restore, exportable session logs, keyboard controls, reduced motion, silent-by-default audio, and low-end device fallbacks.
+The prototype includes deterministic seeds, a three-step guided route, eight calibration moves, optional eight-move challenges, twelve-move journey soft stops, four feedback tiers, local save and restore with a v1 to v2 migration path, exportable session logs, keyboard controls, reduced motion, silent-by-default audio, and low-end device fallbacks. A recursive V0.2 resource budget check keeps the local first-screen graph bounded.
 
 ## Run it locally
 

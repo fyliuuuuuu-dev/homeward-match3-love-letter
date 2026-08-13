@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">Cushion grid tile</title>
+  <desc id="desc">A soft green rounded square with a four-part grid.</desc>
+  <rect x="8.5" y="8.5" width="31" height="31" rx="6" fill="#7F906C" stroke="#46523A" stroke-width="2"/>
+  <path d="M14 17Q14 14 18 14H29" fill="none" stroke="#EEF0D4" stroke-width="2" stroke-linecap="round" opacity=".3"/>
+  <g fill="none" stroke="#46523A" stroke-width="2" stroke-linecap="round"><path d="M24 14V34"/><path d="M14 24H34"/></g>
+</svg>

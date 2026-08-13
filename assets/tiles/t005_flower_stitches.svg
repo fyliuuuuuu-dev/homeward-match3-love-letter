@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">Flower stitches tile</title>
+  <desc id="desc">A muted purple five-petal flower with short radial stitches.</desc>
+  <path d="M24 5C28 5 30.5 12.3 31.5 15C34.3 14.2 41.8 13.7 43 17.5C44.2 21.3 38.1 25.8 35.8 27.5C37.5 29.8 40.3 36.8 37 39.2C33.8 41.6 27.7 37.2 24 35C20.3 37.2 14.2 41.6 11 39.2C7.7 36.8 10.5 29.8 12.2 27.5C9.9 25.8 3.8 21.3 5 17.5C6.2 13.7 13.7 14.2 16.5 15C17.5 12.3 20 5 24 5Z" fill="#8A708E" stroke="#504155" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M15 18Q19 10 26 9" fill="none" stroke="#F3E0EF" stroke-width="2" stroke-linecap="round" opacity=".3"/>
+  <g fill="none" stroke="#504155" stroke-width="2" stroke-linecap="round">
+    <path d="M24 19V14"/><path d="M28.8 22.4L33.5 20.9"/><path d="M27 27.9L29.9 31.9"/><path d="M21 27.9L18.1 31.9"/><path d="M19.2 22.4L14.5 20.9"/>
+    <circle cx="24" cy="24" r="2.5" fill="#8A708E"/>
+  </g>
+</svg>

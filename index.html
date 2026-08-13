@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#eceae5">
+  <meta name="description" content="An early mobile-first match-3 prototype about two companions finding their way home.">
+  <title>Homeward: A Match-3 Love Letter</title>
+  <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="src/presentation.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="summary" aria-label="Journey summary">
+      <div><span class="label">Turn</span><strong id="cat">Cat A</strong></div>
+      <div><span class="label">Journey</span><strong id="growth">0</strong></div>
+      <div><span class="label">Moves</span><strong id="hands">0</strong></div>
+    </header>
+
+    <section class="status-card">
+      <div class="cat-stage" aria-hidden="true">
+        <span id="catA" class="companion-badge"><img class="companion-portrait" src="assets/companions/dabing.png" alt=""><b>A</b></span>
+        <span id="meetingMark">&middot;</span>
+        <span id="catB" class="companion-badge"><img class="companion-portrait" src="assets/companions/yuwan.png" alt=""><b>B</b></span>
+      </div>
+      <p id="status" role="status">Connect at least three matching tiles</p>
+      <div id="mission" class="mission" hidden></div>
+    </section>
+
+    <section id="boardWrap" class="board-wrap" aria-label="Six-column, seven-row connection board">
+      <svg id="pathLayer" class="path-layer" aria-hidden="true"></svg>
+      <div id="board" class="board"></div>
+      <div id="boardFx" class="board-fx" aria-hidden="true"></div>
+    </section>
+
+    <div class="path-actions" aria-label="Keyboard and screen-reader path controls">
+      <button id="submitPath" type="button" disabled>Submit path</button>
+      <button id="cancelPath" type="button" disabled>Cancel path</button>
+    </div>
+
+    <nav class="controls" aria-label="Game controls">
+      <button id="restart" type="button">Restart seed</button>
+      <button id="rulesButton" type="button" aria-expanded="false">How to play</button>
+      <button id="mute" type="button" aria-pressed="true">Sound: off</button>
+      <button id="motion" type="button" aria-pressed="false">Reduced motion: off</button>
+    </nav>
+
+    <details class="debug">
+      <summary>Prototype tools</summary>
+      <label>Seed <input id="seed" inputmode="numeric" value="32032"></label>
+      <label><input id="missionToggle" type="checkbox"> Try the eight-move rendezvous challenge</label>
+      <div class="debug-actions">
+        <button id="copyLog" type="button">Copy log</button>
+        <button id="downloadLog" type="button">Download log</button>
+      </div>
+      <p id="saveStatus">Local save: waiting for the first save</p>
+    </details>
+
+    <dialog id="rules">
+      <h2>How to play</h2>
+      <p>Connect at least three matching tiles horizontally, vertically, or diagonally. Drag back to the previous tile to undo a step. Cleared tiles refill in place.</p>
+      <p>Your last valid route stays on the board. End the next route on any tile from that earlier route to create a rendezvous and earn four bonus journey points.</p>
+      <p>For keyboard or screen-reader play, focus and activate tiles one by one, then choose Submit path. Press Escape or choose Cancel path to abandon the current route.</p>
+      <button id="closeRules" type="button">Got it</button>
+    </dialog>
+  </main>
+  <script type="module" src="src/app.mjs"></script>
+</body>
+</html>

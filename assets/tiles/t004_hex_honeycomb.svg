@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title desc">
+  <title id="title">Hexagon tile</title>
+  <desc id="desc">A blue hexagon with a central cell and six small nodes.</desc>
+  <polygon points="10,10 38,10 43,24 38,38 10,38 5,24" fill="#527C88" stroke="#2D4A52" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M12 18L16 12H29" fill="none" stroke="#D7EDF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".3"/>
+  <g fill="none" stroke="#2D4A52" stroke-width="2" stroke-linejoin="round"><polygon points="24,19 28.3,21.5 28.3,26.5 24,29 19.7,26.5 19.7,21.5"/></g>
+  <g fill="#2D4A52"><circle cx="24" cy="14.5" r="1.5"/><circle cx="32.2" cy="19.2" r="1.5"/><circle cx="32.2" cy="28.8" r="1.5"/><circle cx="24" cy="33.5" r="1.5"/><circle cx="15.8" cy="28.8" r="1.5"/><circle cx="15.8" cy="19.2" r="1.5"/></g>
+</svg>

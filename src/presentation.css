@@ -1,0 +1,228 @@
+:root {
+  --tile-path: #5e3f57;
+  --tile-cream: #fff3d5;
+  --tile-paw: rgba(111, 91, 69, .58);
+  --tile-system: #53504a;
+}
+
+.board-wrap { isolation: isolate; }
+
+.board {
+  z-index: 2;
+  overflow: visible;
+}
+
+.cell {
+  min-width: 44px;
+  min-height: 44px;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.tile-image {
+  position: absolute;
+  inset: 3px;
+  z-index: 2;
+  display: block;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.cell.selected::before {
+  position: absolute;
+  inset: 1px;
+  z-index: 3;
+  border: 3px solid #244b40;
+  border-radius: 13px;
+  box-shadow: inset 0 0 0 2px var(--tile-cream);
+  content: "";
+  pointer-events: none;
+}
+
+.cell.has-old-route::after {
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  border: 2px dashed var(--tile-paw);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 5px calc(100% - 10px), var(--tile-paw) 0 1.5px, transparent 1.8px),
+    radial-gradient(circle at 9px calc(100% - 11px), var(--tile-paw) 0 1.5px, transparent 1.8px),
+    radial-gradient(circle at 13px calc(100% - 10px), var(--tile-paw) 0 1.5px, transparent 1.8px),
+    radial-gradient(ellipse at 9px calc(100% - 5px), var(--tile-paw) 0 5px, transparent 5.4px);
+  content: "";
+  pointer-events: none;
+}
+
+.path-layer {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.path-layer .route-line {
+  fill: none;
+  stroke: var(--tile-path);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .82;
+}
+
+.direction-beat {
+  fill: var(--tile-cream);
+  stroke: var(--tile-path);
+  stroke-width: 1.5;
+}
+
+.endpoint-cap {
+  fill: var(--tile-cream);
+  stroke: var(--tile-path);
+  stroke-width: 3;
+}
+
+.backtrack-hook {
+  fill: none;
+  stroke: #704f2c;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.board-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.resolve-mark,
+.meeting-mark {
+  position: absolute;
+  border-radius: 50%;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.resolve-mark {
+  width: 34px;
+  height: 34px;
+  border: 2px dashed #4e4a3f;
+  box-shadow: inset 0 0 0 6px transparent, inset 0 0 0 8px var(--tile-cream);
+  animation: resolve-close .58s ease-out both;
+}
+
+.resolve-mark::after {
+  position: absolute;
+  left: 13px;
+  top: -5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #a8895f;
+  box-shadow: -9px 27px 0 #7f906c, 9px 27px 0 #be6f57;
+  content: "";
+}
+
+.meeting-mark {
+  width: 42px;
+  height: 38px;
+  border: 4px solid var(--tile-path);
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  animation: meeting-close .64s ease-out both;
+}
+
+.meeting-mark::before,
+.meeting-mark::after {
+  position: absolute;
+  top: 10px;
+  width: 9px;
+  height: 9px;
+  border: 3px solid var(--tile-cream);
+  border-top: 0;
+  border-left: 0;
+  content: "";
+}
+
+.meeting-mark::before { left: 5px; transform: rotate(-45deg); }
+.meeting-mark::after { right: 5px; transform: rotate(135deg); }
+
+.contact-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--tile-path);
+  background: var(--tile-cream);
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+}
+
+.reshuffle-board {
+  position: absolute;
+  inset: 4px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--tile-system);
+  border-radius: 14px;
+  background: rgba(246, 235, 215, .24);
+  animation: reshuffle-neutral .8s ease-out both;
+  pointer-events: none;
+}
+
+.reshuffle-board::before {
+  padding: 8px 12px;
+  border: 2px solid var(--tile-system);
+  border-radius: 10px;
+  color: var(--tile-system);
+  background: rgba(255, 250, 240, .94);
+  font-weight: 750;
+  content: "Board refreshed  \2194";
+}
+
+@keyframes resolve-close {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(1.18); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes meeting-close {
+  from { opacity: 0; transform: translate(-50%, -50%) scaleX(1.35); }
+  to { opacity: 1; transform: translate(-50%, -50%) scaleX(1); }
+}
+
+@keyframes reshuffle-neutral {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+body.reduce-motion .resolve-mark,
+body.reduce-motion .meeting-mark,
+body.reduce-motion .reshuffle-board,
+body.low-end .resolve-mark,
+body.low-end .meeting-mark,
+body.low-end .reshuffle-board {
+  animation: none;
+}
+
+body.reduce-motion .resolve-mark::after,
+body.low-end .direction-beat,
+body.low-end .resolve-mark::after { display: none; }
+
+body.low-end .path-layer .route-line {
+  stroke-width: 5;
+  opacity: 1;
+}
+
+body.low-end .reshuffle-board { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  .resolve-mark,
+  .meeting-mark,
+  .reshuffle-board { animation: none; }
+  .resolve-mark::after { display: none; }
+}

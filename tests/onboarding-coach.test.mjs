@@ -47,6 +47,18 @@ test("the first step animates a route of at least three matching cells", () => {
   assert.match(model.text, /three adjacent matching tiles/);
 });
 
+test("the coach hides a live route that no longer uses one tile type on the current board", () => {
+  const state = stateFor(0);
+  state.board = Array(42).fill(0);
+  state.board[1] = 1;
+  const model = createCoachModel(state);
+  assert.deepEqual(model.routes, []);
+  assert.deepEqual(model.primaryRoute, []);
+  assert.equal(model.animate, false);
+  assert.equal(model.showMeetingAtEndpoint, false);
+  assert.match(model.text, /route illustration is hidden/);
+});
+
 test("the second step marks the previous owner and meets only at the endpoint", () => {
   const model = createCoachModel(stateFor(1));
   assert.equal(model.oldRouteCat, "A");
@@ -92,6 +104,17 @@ test("serialized settings restore all three replay semantics in order", () => {
   assert.match(models[2].text, /Choose your own next move/);
 });
 
+test("replay hides stored overlays when the current board no longer matches them", () => {
+  const frames = [0, 1, 2].map((step) => createCoachFrame(stateFor(step)));
+  const board = Array(42).fill(0);
+  board[1] = 1;
+  const [model] = createCoachReplayModels(frames, board);
+  assert.deepEqual(model.routes, []);
+  assert.deepEqual(model.oldRoute, []);
+  assert.equal(model.showMeetingAtEndpoint, false);
+  assert.match(model.text, /route illustration is hidden/);
+});
+
 test("skip preference and learned frames coexist in settings", () => {
   const settings = {
     muted: true,
@@ -127,7 +150,7 @@ test("integration keeps the coach decorative, English, and input independent", a
     readFile(new URL("../src/presentation.css", import.meta.url), "utf8"),
     readFile(new URL("../src/presentation.mjs", import.meta.url), "utf8")
   ]);
-  assert.match(app, /import\("\.\/onboarding-coach\.mjs"\)/);
+  assert.match(app, /import\("\.\/onboarding-coach\.mjs\?v=4"\)/);
   assert.match(app, /settings\.onboardingCoachSkipped = true/);
   assert.match(app, /settings\.onboardingCoachFrames = frames/);
   assert.match(app, /window\.addEventListener\("load"[\s\S]*coachAutoLoadEnabled = true[\s\S]*syncCoach\(\)/);
@@ -138,9 +161,13 @@ test("integration keeps the coach decorative, English, and input independent", a
   assert.doesNotMatch(coach, /private|personal|source|engine|persistence|areAdjacent|hasLegalRoute|advancePath|meetingGrowth|baseGrowth/i);
   assert.doesNotMatch(coach, /^\s*import\s/m);
   assert.doesNotMatch(coach, /setTimeout|setInterval/);
-  assert.match(coach, /"aria-hidden": "true"/);
-  assert.match(coach, /ownGeneration !== generation/);
+  assert.match(coach, /"aria-hidden"\s*:\s*"true"/);
+  assert.match(coach, /ownGeneration\s*!==\s*generation/);
   assert.match(css, /\.onboarding-coach-visual[\s\S]*pointer-events:\s*none/);
+  assert.match(css, /\.onboarding-coach-panel\[hidden\][^{]*\{[^}]*display:\s*none/);
+  assert.match(css, /\.onboarding-turn-cue[\s\S]*pointer-events:\s*none/);
+  assert.match(coach, /turnCue\.textContent\s*=\s*"Your turn"/);
+  assert.match(coach, /panel\.hidden\s*=\s*true/);
   assert.match(coach, /Skip three-step route demo/);
   assert.match(coach, /Close the route demo and start playing/);
   assert.match(presentation, /coordinateCells/);
@@ -148,9 +175,10 @@ test("integration keeps the coach decorative, English, and input independent", a
 
 test("reduced motion keeps route endpoints and avoids animation calls", async () => {
   const coach = await readFile(new URL("../src/onboarding-coach.mjs", import.meta.url), "utf8");
-  assert.match(coach, /if \(reducedMotion\)/);
-  assert.match(coach, /marker\.setAttribute\("cx", String\(endpoint\.x\)\)/);
-  assert.ok(coach.indexOf("if (reducedMotion)") < coach.indexOf("marker.animate("));
+  assert.match(coach, /if\s*\(\s*reducedMotion\s*\)/);
+  assert.match(coach, /marker\.setAttribute\("cx",\s*String\(endpoint\.x\)\)/);
+  assert.ok(coach.indexOf("if(reducedMotion)") < coach.indexOf("marker.animate("));
+  assert.match(coach, /reducedMotion\s*\?\s*\[\{\s*opacity:\s*1\s*\},\s*\{\s*opacity:\s*1\s*\}\]/);
 });
 
 test("coach source stays free of doubled hyphens and trailing whitespace", async () => {

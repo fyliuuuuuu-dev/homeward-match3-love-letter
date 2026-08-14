@@ -25,8 +25,8 @@ test("the two after-load modules stay local and within budget", async () => {
     readFile(path.join(root, afterLoadFiles[0]), "utf8"),
     readFile(path.join(root, afterLoadFiles[1]), "utf8")
   ]);
-  assert.match(app, /import\("\.\/onboarding-coach\.mjs"\)/);
-  assert.match(app, /import\("\.\/journey-settlement\.mjs"\)/);
+  assert.match(app, /import\("\.\/onboarding-coach\.mjs\?v=4"\)/);
+  assert.match(app, /import\("\.\/journey-settlement\.mjs\?v=4"\)/);
   assert.doesNotMatch(coach, /^\s*import\s/m);
   assert.doesNotMatch(settlement, /^\s*import\s/m);
   assert.doesNotMatch(coach.replace("http://www.w3.org/2000/svg", ""), /https?:\/\//);

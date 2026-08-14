@@ -20,6 +20,13 @@ const cloneCells = (cells = []) => cells.map(cloneCell);
 const cellKey = ({
   row, column
 }) => `${row},${column}`;
+
+export function meetingFeedbackMessage(result) {
+  const base = Number(result?.baseGrowth) || 0;
+  const bonus = Number(result?.meetingGrowth) || 0;
+  return `The companions meet at the route endpoint. This turn earns ${base + bonus} journey points: ${base} from the route and the fixed +${bonus} rendezvous bonus.`;
+}
+
 export function createPresentationModel({
   state, path = [], action = null, result = null
 }) {

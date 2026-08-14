@@ -22,6 +22,15 @@ test("the public interface is English and exposes one live status region", async
   assert.match(html, /id="cancelPath"[^>]*disabled/);
 });
 
+test("entry resources use one fixed local version query", async () => {
+  const [html, app] = await Promise.all([load("index.html"), load("src/app.mjs")]);
+  assert.match(html, /href="src\/styles\.css\?v=4"/);
+  assert.match(html, /href="src\/presentation\.css\?v=4"/);
+  assert.match(html, /src="src\/app\.mjs\?v=4"/);
+  assert.match(app, /import\("\.\/onboarding-coach\.mjs\?v=4"\)/);
+  assert.match(app, /import\("\.\/journey-settlement\.mjs\?v=4"\)/);
+});
+
 test("mobile and accessibility contracts keep touch targets and alternatives", async () => {
   const [css, app] = await Promise.all([load("src/styles.css"), load("src/app.mjs")]);
   assert.match(css, /button\s*\{[^}]*min-height:\s*44px/s);
@@ -67,4 +76,11 @@ test("the two approved companion assets are present with a neutral fallback", as
 test("the static public tree passes the privacy scan", async () => {
   const result = await scanTree(root);
   assert.deepEqual(result, { ok: true, violations: [] });
+});
+
+test("page and code omit capture blocking and recording capabilities", async () => {
+  const files = ["index.html", "src/app.mjs", "src/onboarding-coach.mjs", "src/presentation.mjs", "src/presentation.css"];
+  const sources = await Promise.all(files.map(load));
+  const forbidden = /PrintScreen|getDisplayMedia|screen.?capture|screenshot|toDataURL|html2canvas|clipboard.*image|captureStream/i;
+  for (const [index, source] of sources.entries()) assert.doesNotMatch(source, forbidden, files[index]);
 });

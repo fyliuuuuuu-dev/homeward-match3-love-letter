@@ -14,8 +14,9 @@ The coach reads the authoritative tutorial candidates already present in the gam
 
 - The first two frames use a short route animation. The third frame stays still.
 - Reduced motion places the route marker at its endpoint and keeps the route, endpoints, and meeting marker visible.
+- A route illustration appears only while every recorded route still uses one tile type on the current 42-cell board. When the board has changed, the SVG stays hidden and the panel gives a safety note instead.
 - The coach SVG has no pointer interaction, so dragging and keyboard controls remain available.
-- Skip closes the current explanation and records an optional preference in the existing settings record.
+- Skip and close make the explanation panel hidden, then show a brief noninteractive "Your turn" cue. The cue also remains safe when reduced motion is enabled.
 - Replay opens the frames already learned by the local player. It never restores a board, random state, move count, or session log.
 
 ## Persistence boundary

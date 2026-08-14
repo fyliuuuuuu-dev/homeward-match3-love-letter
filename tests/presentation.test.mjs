@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createPresentationModel, TILE_ASSET_FILES } from "../src/presentation.mjs";
+import { readFile } from "node:fs/promises";
+import { createPresentationModel, meetingFeedbackMessage, TILE_ASSET_FILES } from "../src/presentation.mjs";
 import { svgPathGeometry } from "../src/ui-utils.mjs";
 
 const cell = (row, column) => ({ row, column });
@@ -22,6 +23,23 @@ test("the presenter exposes exactly five generic tile assets", () => {
     "t004_hex_honeycomb.svg",
     "t005_flower_stitches.svg"
   ]);
+});
+
+test("meeting feedback is deterministic, generic, and sourced from authoritative growth fields", async () => {
+  const result = { valid: true, meeting: true, baseGrowth: 3, meetingGrowth: 4 };
+  const before = structuredClone(result);
+  const first = meetingFeedbackMessage(result);
+  const second = meetingFeedbackMessage(structuredClone(result));
+  assert.equal(first, second);
+  assert.match(first, /companions meet/);
+  assert.match(first, /7 journey points/);
+  assert.match(first, /fixed \+4 rendezvous bonus/);
+  assert.deepEqual(result, before);
+  const source = await readFile(new URL("../src/presentation.mjs", import.meta.url), "utf8");
+  const body = source.slice(source.indexOf("export function meetingFeedbackMessage"), source.indexOf("export function createPresentationModel"));
+  assert.match(body, /result\?\.baseGrowth/);
+  assert.match(body, /result\?\.meetingGrowth/);
+  assert.doesNotMatch(body, /Math\.random|crypto|rng|random/i);
 });
 
 test("presentation state copies previous and current routes", () => {

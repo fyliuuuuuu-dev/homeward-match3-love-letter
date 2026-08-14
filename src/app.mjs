@@ -1,6 +1,6 @@
 import { GreyboxEngine } from "./engine.mjs";
 import { readSaveWithMigration, safeStorageRead, safeStorageWrite } from "./persistence.mjs";
-import { createPresenter } from "./presentation.mjs";
+import { createPresenter, meetingFeedbackMessage } from "./presentation.mjs";
 const STORAGE_KEY = "homeward-match3-save-v2";
 const LEGACY_STORAGE_KEY = "homeward-match3-save-v1";
 const SETTINGS_KEY = "homeward-match3-settings-v1";
@@ -47,7 +47,7 @@ function settlementLoadFailed() {
   if (arrivalWasPending) render("Journey complete. Progress remains here; the summary could not load.");
 }
 function ensureSettlement() {
-  settlementPromise ||= import("./journey-settlement.mjs")
+  settlementPromise ||= import("./journey-settlement.mjs?v=4")
     .then(({ createJourneySettlement }) => {
       settlement = createJourneySettlement({
         document,
@@ -88,7 +88,7 @@ function persistSettings() {
   safeStorageWrite(localStore, SETTINGS_KEY, JSON.stringify(settings));
 }
 function ensureCoach() {
-  coachLoadPromise ||= import("./onboarding-coach.mjs").then(({ createOnboardingCoach }) => {
+  coachLoadPromise ||= import("./onboarding-coach.mjs?v=4").then(({ createOnboardingCoach }) => {
     coach = createOnboardingCoach({
       ui,
       coordinateCells: (cells) => presenter.coordinateCells(cells),
@@ -172,8 +172,9 @@ function render(message = null, result = null, focusCell = null, action = null) 
   syncCoach();
 }
 function resultMessage(result) {
+  if (result.meeting === true) return meetingFeedbackMessage(result);
   return {
-    ordinary: `Cleared ${result.baseGrowth} tiles. The previous route is now marked.`, long: `Long route: ${result.baseGrowth} tiles marked.`, meeting: `Rendezvous: ${result.baseGrowth} path points plus a 4-point bonus`, arrival: "You made it home. Start the next journey when ready."
+    ordinary: `Cleared ${result.baseGrowth} tiles. The previous route is now marked.`, long: `Long route: ${result.baseGrowth} tiles marked.`, arrival: "You made it home. Start the next journey when ready."
   }
   [result.feedbackTier] || "Route complete.";
 }

@@ -8,6 +8,20 @@ Two cats carry the companion roles in this public edition. Dabing, the low-slung
 
 Their approved AI-redrawn portraits are the only personal character art in the repository. The game engine and save format still call them Cat A and Cat B, so forks can replace them without changing the rules. Read [COMPANIONS.md](COMPANIONS.md) for the short character notes and the separate artwork license.
 
+## Why This Matters
+
+Homeward shows how a non-professional programmer can turn a personal idea into a small work that is playable, testable, accessible, privacy-conscious, and maintainable. The meaningful part is not code generation by itself. It is the combination of a clear product intention, explicit rules, repeatable checks, careful publishing boundaries, and the patience to keep refining what a player can actually experience.
+
+## How Codex Is Used
+
+Codex helps interpret the product brief, implement and refactor code, write tests, inspect behavior, and review release candidates. The creator remains responsible for product direction, game rules, acceptance decisions, permissions, privacy, and publication. Generated output is treated as a candidate and is not published until it has been reviewed and the public checks pass.
+
+## Public preview
+
+![Homeward v0.2.0 first screen](docs/media/homeward-v0.2.0-first-screen.png)
+
+[Watch the short silent rendezvous demo](docs/media/homeward-v0.2.0-rendezvous-demo.gif). It shows Cat A leaving a route, then Cat B ending on the marked route to earn the rendezvous bonus.
+
 ## What makes the prototype different
 
 The board has six columns, seven rows, and five geometric tile types. Connect three or more matching tiles in any of eight directions. Cleared tiles refill in place, so the spatial relationship between routes remains easy to read.

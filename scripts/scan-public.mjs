@@ -39,8 +39,16 @@ const allowedCompanionNameFiles = new Set([
 ]);
 const allowedBinaryPaths = new Set([
   ["assets/companions/", "da", "bing", ".png"].join(""),
+  ["assets/companions/", "yu", "wan", ".png"].join(""),
+  "docs/media/homeward-v0.2.0-first-screen.png",
+  "docs/media/homeward-v0.2.0-rendezvous-demo.gif"
+]);
+const companionBinaryPaths = new Set([
+  ["assets/companions/", "da", "bing", ".png"].join(""),
   ["assets/companions/", "yu", "wan", ".png"].join("")
 ]);
+const releaseScreenshotPath = "docs/media/homeward-v0.2.0-first-screen.png";
+const releaseDemoPath = "docs/media/homeward-v0.2.0-rendezvous-demo.gif";
 const reportPath = resolve(repositoryRoot, "PUBLIC_RELEASE_SCAN.md");
 
 async function collectFiles(directory, root = directory) {
@@ -110,6 +118,33 @@ function inspectCompanionPng(buffer) {
   return [...new Set(issues)];
 }
 
+function gifDurationHundredths(buffer) {
+  let duration = 0;
+  for (let offset = 0; offset + 7 < buffer.length; offset += 1) {
+    if (buffer[offset] === 0x21 && buffer[offset + 1] === 0xf9 && buffer[offset + 2] === 0x04) {
+      duration += buffer.readUInt16LE(offset + 4);
+    }
+  }
+  return duration;
+}
+
+function inspectReleaseMedia(buffer, publicPath) {
+  if (publicPath === releaseScreenshotPath) {
+    const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    if (buffer.length < 33 || !buffer.subarray(0, 8).equals(signature)) return ["invalid release screenshot PNG"];
+    if (buffer.readUInt32BE(16) !== 390 || buffer.readUInt32BE(20) !== 844) return ["release screenshot dimensions changed"];
+    return [];
+  }
+  if (publicPath === releaseDemoPath) {
+    if (buffer.length < 14 || !/^GIF8[79]a$/.test(buffer.subarray(0, 6).toString("ascii"))) return ["invalid release demo GIF"];
+    if (buffer.readUInt16LE(6) !== 390 || buffer.readUInt16LE(8) !== 844) return ["release demo dimensions changed"];
+    const duration = gifDurationHundredths(buffer);
+    if (duration < 2000 || duration > 4000) return ["release demo duration is outside 20 to 40 seconds"];
+    return [];
+  }
+  return ["unexpected release media path"];
+}
+
 export async function scanTree(root = repositoryRoot) {
   const entries = await collectFiles(root, root);
   const violations = [];
@@ -124,7 +159,10 @@ export async function scanTree(root = repositoryRoot) {
         continue;
       }
       const buffer = await readFile(entry.fullPath);
-      for (const issue of inspectCompanionPng(buffer)) violations.push({ path: entry.publicPath, issue });
+      const issues = companionBinaryPaths.has(entry.publicPath)
+        ? inspectCompanionPng(buffer)
+        : inspectReleaseMedia(buffer, entry.publicPath);
+      for (const issue of issues) violations.push({ path: entry.publicPath, issue });
       continue;
     }
     for (const companionName of companionNames) {
@@ -152,7 +190,7 @@ Status: PASS
 | English-only text across public files | PASS |
 | Local, editable, non-executable SVG assets | PASS |
 | Two exact companion PNG exceptions and metadata boundary | PASS |
-| Unexpected binary artifacts | PASS |
+| Two exact release-media exceptions and unexpected binary artifacts | PASS |
 
 The scan reports categories and conclusions only. It does not reproduce excluded source names, local paths, identifiers, or fingerprints.
 `;

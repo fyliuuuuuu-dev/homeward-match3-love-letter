@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { scanTree } from "../scripts/scan-public.mjs";
@@ -9,8 +9,51 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const load = (path) => readFile(new URL(path, new URL("../", import.meta.url)), "utf8");
 
 test("required public documentation is present", async () => {
-  const required = ["README.md", "COMPANIONS.md", "CONTRIBUTING.md", "SECURITY.md", "PRIVACY.md", "CUSTOMIZATION.md", "LICENSE", "ASSET_LICENSE.md", "PUBLIC_ASSET_MANIFEST.md", "PUBLIC_RELEASE_SCAN.md", "docs/ONBOARDING_COACH_V0.1.md", "docs/JOURNEY_SETTLEMENT_V0.1.md"];
+  const required = ["README.md", "COMPANIONS.md", "CONTRIBUTING.md", "SECURITY.md", "PRIVACY.md", "CUSTOMIZATION.md", "LICENSE", "ASSET_LICENSE.md", "PUBLIC_ASSET_MANIFEST.md", "PUBLIC_RELEASE_SCAN.md", "docs/ONBOARDING_COACH_V0.1.md", "docs/JOURNEY_SETTLEMENT_V0.1.md", "docs/RELEASE_NOTES_V0.2.0.md", ".github/workflows/ci.yml"];
   await Promise.all(required.map((name) => access(resolve(root, name))));
+});
+
+test("CI uses supported Node versions, minimal permissions, and repository checks", async () => {
+  const workflow = await load(".github/workflows/ci.yml");
+  assert.match(workflow, /permissions:\s*\n\s+contents: read/);
+  assert.match(workflow, /node-version: \[20, 22\]/);
+  assert.match(workflow, /run: npm test/);
+  assert.match(workflow, /run: npm run scan -- --check/);
+  assert.doesNotMatch(workflow, /secrets\.|permissions:\s*write|contents: write/i);
+  const actions = [...workflow.matchAll(/^\s*uses:\s*([^\s]+)$/gm)].map((match) => match[1]);
+  assert.deepEqual(actions, ["actions/checkout@v4", "actions/setup-node@v4"]);
+});
+
+test("v0.2.0 release copy keeps ownership and validation boundaries explicit", async () => {
+  const [readme, notes] = await Promise.all([load("README.md"), load("docs/RELEASE_NOTES_V0.2.0.md")]);
+  for (const heading of ["Why This Matters", "How Codex Is Used", "Public preview"]) assert.match(readme, new RegExp(`## ${heading}`));
+  for (const responsibility of ["product direction", "game rules", "acceptance decisions", "permissions", "privacy", "publication"]) {
+    assert.match(readme, new RegExp(responsibility));
+  }
+  assert.match(readme, /not published until it has been reviewed/);
+  assert.match(notes, /^# Homeward v0\.2\.0: First Public Playable Prototype/m);
+  for (const heading of ["Playable scope", "Run and verify", "Known limitations", "Privacy boundary", "Companion portrait license", "Next phase"]) {
+    assert.match(notes, new RegExp(`## ${heading}`));
+  }
+  assert.doesNotMatch(`${readme}\n${notes}`, /wife playtest|wife tested|externally validated|external validation complete/i);
+});
+
+test("v0.2.0 release media is present, bounded, and referenced", async () => {
+  const screenshot = "docs/media/homeward-v0.2.0-first-screen.png";
+  const demo = "docs/media/homeward-v0.2.0-rendezvous-demo.gif";
+  const [readme, png, gif, pngStat, gifStat] = await Promise.all([
+    load("README.md"),
+    readFile(resolve(root, screenshot)),
+    readFile(resolve(root, demo)),
+    stat(resolve(root, screenshot)),
+    stat(resolve(root, demo))
+  ]);
+  assert.match(readme, new RegExp(screenshot.replaceAll(".", "\\.")));
+  assert.match(readme, new RegExp(demo.replaceAll(".", "\\.")));
+  assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+  assert.match(gif.subarray(0, 6).toString("ascii"), /^GIF8[79]a$/);
+  assert.ok(pngStat.size > 10_000 && pngStat.size < 2_000_000);
+  assert.ok(gifStat.size > 10_000 && gifStat.size < 8_000_000);
 });
 
 test("the public interface is English and exposes one live status region", async () => {

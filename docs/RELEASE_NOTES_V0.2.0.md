@@ -20,6 +20,10 @@ npm run scan
 
 The project has no third-party runtime or development dependencies. The automated suite covers engine rules, persistence and migration, onboarding, journey settlement, presentation contracts, accessibility-related static checks, resource budgets, the local server, release documentation, media presence, and the public privacy scan. CI runs the same test and scan commands on Node.js 20 and 22.
 
+## Mobile interaction hardening
+
+Active board drags suppress browser movement only on the board and its tiles. The rest of the page keeps normal scrolling behavior. Status and teaching text reserve stable space for narrow screens. After a local journey save, the settlement card keeps two clear exits: Close for now closes the card without changing game state, while Play another journey returns to the board through the existing anonymous choice path.
+
 ## Known limitations
 
 This milestone remains an early prototype. It does not claim completed human playtesting, real-device iPhone validation, PWA installation, WeChat integration, production readiness, a finished visual identity, or independent external validation. The short demo illustrates the implemented rule and is not usability evidence.

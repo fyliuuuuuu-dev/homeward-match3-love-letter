@@ -54,6 +54,7 @@ export function createJourneySettlement({ document, onChoice }) {
     dialog.innerHTML = `<div class="journey-settlement-card"><p class="journey-settlement-kicker">The route made it home</p><h2 id="journey-settlement-title"></h2><p id="journey-settlement-copy"></p><div class="journey-settlement-actions"><button type="button" data-choice="continue">Start another journey</button><button type="button" data-choice="store">Save for today</button></div></div>`;
     dialog.addEventListener("cancel", (event) => event.preventDefault());
     dialog.addEventListener("click", (event) => {
+      if(event.target.closest?.("[data-r]")){model.reset();dialog.close();return;}
       const choice = event.target.closest?.("[data-choice]")?.dataset.choice;
       const payload = model.choose(choice);
       if (!payload) return;
@@ -70,7 +71,7 @@ export function createJourneySettlement({ document, onChoice }) {
     dialog.querySelector(".journey-settlement-kicker").textContent = content.kicker;
     dialog.querySelector("#journey-settlement-title").textContent = content.title;
     dialog.querySelector("#journey-settlement-copy").textContent = content.copy;
-    dialog.querySelector(".journey-settlement-actions").innerHTML = `<button type="button" data-choice="reopen">Play another journey</button>`;
+    dialog.querySelector(".journey-settlement-actions").innerHTML = `<button type="button" data-r>Close for now</button><button type="button" data-choice="reopen">Play another journey</button>`;
     dialog.querySelector("[data-choice=reopen]").focus();
   }
 

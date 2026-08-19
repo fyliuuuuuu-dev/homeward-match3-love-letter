@@ -66,6 +66,13 @@ test("stored copy distinguishes save success from failure", () => {
   assert.match(failure.copy, /Download the session log/);
 });
 
+test("stored settlement keeps close and play-again as separate exits", async () => {
+  const module = await readFile(new URL("../src/journey-settlement.mjs", import.meta.url), "utf8");
+  assert.match(module, /data-r>Close for now<\/button><button type="button" data-choice="reopen">Play another journey/);
+  assert.match(module, /data-r[\s\S]*model\.reset\(\);[\s\S]*dialog\.close\(\)/);
+  assert.doesNotMatch(module, /choice:\s*["']rest["']/);
+});
+
 test("module is presentation only and app blocks input while settlement is pending", async () => {
   const [module, app] = await Promise.all([
     readFile(new URL("../src/journey-settlement.mjs", import.meta.url), "utf8"),
@@ -77,7 +84,7 @@ test("module is presentation only and app blocks input while settlement is pendi
   assert.match(module, /addEventListener\("cancel", \(event\) => event\.preventDefault\(\)\)/);
   assert.match(module, /showModal\(\)/);
   assert.match(module, /data-choice="continue"[\s\S]*\.focus\(\)/);
-  for (const text of ["Journey ", "journey points", "Start another journey", "Save for today", "saved locally", "Play another journey"]) {
+  for (const text of ["Journey ", "journey points", "Start another journey", "Save for today", "saved locally", "Close for now", "Play another journey"]) {
     assert.match(module, new RegExp(text));
   }
   assert.match(app, /pendingArrival = \{[\s\S]*result: \{ arrival: true \}/);

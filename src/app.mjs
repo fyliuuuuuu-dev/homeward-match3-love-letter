@@ -47,7 +47,7 @@ function settlementLoadFailed() {
   if (arrivalWasPending) render("Journey complete. Progress remains here; the summary could not load.");
 }
 function ensureSettlement() {
-  settlementPromise ||= import("./journey-settlement.mjs?v=4")
+  settlementPromise ||= import("./journey-settlement.mjs?v=5")
     .then(({ createJourneySettlement }) => {
       settlement = createJourneySettlement({
         document,
@@ -202,6 +202,7 @@ ui.board.addEventListener("pointerdown", (event) => {
 });
 ui.board.addEventListener("pointermove", (event) => {
   if (event.pointerId !== activePointer)return;
+  event.preventDefault();
   const cell = cellFromEvent(event);
   if (!cell)return;
   const action = engine.extendTrace(cell);
@@ -210,7 +211,6 @@ ui.board.addEventListener("pointermove", (event) => {
     tone(reversing?220: 300+engine.path.length*30);
     render(reversing ? "Path shortened." : `${engine.path.length} tiles`, null, null, action);
   }
-  event.preventDefault();
 });
 function finishPointer(event, cancelled = false) {
   if (event.pointerId !== activePointer)return;

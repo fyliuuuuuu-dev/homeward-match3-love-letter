@@ -65,13 +65,13 @@ test("the public interface is English and exposes one live status region", async
   assert.match(html, /id="cancelPath"[^>]*disabled/);
 });
 
-test("entry resources use one fixed local version query", async () => {
+test("entry resources use synchronized local version queries", async () => {
   const [html, app] = await Promise.all([load("index.html"), load("src/app.mjs")]);
-  assert.match(html, /href="src\/styles\.css\?v=4"/);
+  assert.match(html, /href="src\/styles\.css\?v=5"/);
   assert.match(html, /href="src\/presentation\.css\?v=4"/);
-  assert.match(html, /src="src\/app\.mjs\?v=4"/);
+  assert.match(html, /src="src\/app\.mjs\?v=5"/);
   assert.match(app, /import\("\.\/onboarding-coach\.mjs\?v=4"\)/);
-  assert.match(app, /import\("\.\/journey-settlement\.mjs\?v=4"\)/);
+  assert.match(app, /import\("\.\/journey-settlement\.mjs\?v=5"\)/);
 });
 
 test("mobile and accessibility contracts keep touch targets and alternatives", async () => {
